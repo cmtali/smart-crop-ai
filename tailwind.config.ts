@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					glow: 'hsl(var(--primary-glow))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -52,6 +53,19 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				sensor: {
+					good: 'hsl(var(--sensor-good))',
+					'good-foreground': 'hsl(var(--sensor-good-foreground))',
+					warning: 'hsl(var(--sensor-warning))',
+					'warning-foreground': 'hsl(var(--sensor-warning-foreground))',
+					critical: 'hsl(var(--sensor-critical))',
+					'critical-foreground': 'hsl(var(--sensor-critical-foreground))'
+				},
+				dashboard: {
+					card: 'hsl(var(--dashboard-card))',
+					header: 'hsl(var(--dashboard-header))',
+					accent: 'hsl(var(--dashboard-accent))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -62,6 +76,18 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-secondary': 'var(--gradient-secondary)',
+				'gradient-success': 'var(--gradient-success)',
+				'gradient-warning': 'var(--gradient-warning)',
+				'gradient-critical': 'var(--gradient-critical)',
+				'background-gradient': 'var(--background-gradient)'
+			},
+			boxShadow: {
+				'card': 'var(--card-shadow)',
+				'card-hover': 'var(--card-shadow-hover)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

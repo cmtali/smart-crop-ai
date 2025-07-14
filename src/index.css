@@ -2,39 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Arduino Dashboard Design System - Nature & Technology Theme */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    /* Background gradients */
+    --background: 210 20% 98%;
     --foreground: 222.2 84% 4.9%;
+    --background-gradient: linear-gradient(135deg, hsl(210 20% 98%), hsl(200 25% 95%));
 
+    /* Card system */
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
+    --card-shadow: 0 4px 20px -4px hsl(210 10% 85% / 0.3);
+    --card-shadow-hover: 0 8px 30px -6px hsl(210 10% 80% / 0.4);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Sensor status colors */
+    --sensor-good: 142 76% 36%;
+    --sensor-good-foreground: 0 0% 100%;
+    --sensor-warning: 48 96% 53%;
+    --sensor-warning-foreground: 222.2 84% 4.9%;
+    --sensor-critical: 0 84% 60%;
+    --sensor-critical-foreground: 0 0% 100%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary theme - Nature green */
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 142 76% 50%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary theme - Tech blue */
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
 
+    /* Dashboard specific */
+    --dashboard-card: 0 0% 100%;
+    --dashboard-header: 142 76% 36%;
+    --dashboard-accent: 217 91% 60%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 50%));
+    --gradient-warning: linear-gradient(135deg, hsl(48 96% 53%), hsl(48 96% 60%));
+    --gradient-critical: linear-gradient(135deg, hsl(0 84% 60%), hsl(0 84% 68%));
+
+    /* Input and form elements */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
+    --accent: 142 76% 96%;
+    --accent-foreground: 142 76% 36%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
+    --destructive-foreground: 0 0% 100%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 142 76% 36%;
 
     --radius: 0.5rem;
 
