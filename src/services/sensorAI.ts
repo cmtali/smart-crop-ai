@@ -1,12 +1,12 @@
 import { pipeline } from '@huggingface/transformers';
 
 interface SensorData {
-  soilMoisture: number;
-  temperature: number;
-  humidity: number;
-  waterLevel: number;
-  rain: number;
-  light: number;
+  soilMoisture: number | null;
+  temperature: number | null;
+  humidity: number | null;
+  waterLevel: number | null;
+  rain: number | null;
+  light: number | null;
 }
 
 interface AIRecommendation {
@@ -45,43 +45,48 @@ class SensorAIService {
   private analyzeSensorConditions(data: SensorData): string {
     const conditions = [];
     
+    // Check for null values first
+    if (Object.values(data).some(value => value === null)) {
+      return 'sensor data unavailable';
+    }
+    
     // Soil moisture analysis
-    if (data.soilMoisture < 30) {
+    if (data.soilMoisture! < 30) {
       conditions.push('critically dry soil');
-    } else if (data.soilMoisture < 50) {
+    } else if (data.soilMoisture! < 50) {
       conditions.push('moderately dry soil');
-    } else if (data.soilMoisture > 80) {
+    } else if (data.soilMoisture! > 80) {
       conditions.push('very wet soil');
     }
 
     // Temperature analysis
-    if (data.temperature < 10) {
+    if (data.temperature! < 10) {
       conditions.push('cold temperature');
-    } else if (data.temperature > 30) {
+    } else if (data.temperature! > 30) {
       conditions.push('hot temperature');
     }
 
     // Humidity analysis
-    if (data.humidity < 40) {
+    if (data.humidity! < 40) {
       conditions.push('low humidity');
-    } else if (data.humidity > 70) {
+    } else if (data.humidity! > 70) {
       conditions.push('high humidity');
     }
 
     // Water level analysis
-    if (data.waterLevel < 20) {
+    if (data.waterLevel! < 20) {
       conditions.push('low water tank level');
     }
 
     // Rain analysis
-    if (data.rain > 60) {
+    if (data.rain! > 60) {
       conditions.push('heavy rain detected');
     }
 
     // Light analysis
-    if (data.light < 200) {
+    if (data.light! < 200) {
       conditions.push('low light conditions');
-    } else if (data.light > 800) {
+    } else if (data.light! > 800) {
       conditions.push('very bright conditions');
     }
 
@@ -91,14 +96,18 @@ class SensorAIService {
   private createPrompt(data: SensorData): string {
     const conditions = this.analyzeSensorConditions(data);
     
+    // Handle null values in display
+    const formatValue = (value: number | null, decimals: number = 1): string => 
+      value === null ? 'null' : value.toFixed(decimals);
+    
     return `You are an expert agricultural advisor analyzing IoT sensor data. Based on the current readings:
 
-Soil Moisture: ${data.soilMoisture.toFixed(1)}%
-Temperature: ${data.temperature.toFixed(1)}°C  
-Humidity: ${data.humidity.toFixed(1)}%
-Water Tank: ${data.waterLevel.toFixed(1)}%
-Rain: ${data.rain.toFixed(1)}%
-Light: ${data.light.toFixed(0)} lux
+Soil Moisture: ${formatValue(data.soilMoisture)}%
+Temperature: ${formatValue(data.temperature)}°C  
+Humidity: ${formatValue(data.humidity)}%
+Water Tank: ${formatValue(data.waterLevel)}%
+Rain: ${formatValue(data.rain)}%
+Light: ${formatValue(data.light, 0)} lux
 
 Current conditions: ${conditions}
 
@@ -178,10 +187,26 @@ Focus on the most important issue. Be concise and practical.`;
   }
 
   private getFallbackRecommendations(data: SensorData): AIRecommendation[] {
-    // Smart fallback logic
+    // Smart fallback logic with null handling
     const issues = [];
 
-    if (data.soilMoisture < 30) {
+    // Check for null values first
+    const hasNullValues = Object.values(data).some(value => value === null);
+    if (hasNullValues) {
+      issues.push({
+        type: 'critical' as const,
+        title: 'No Sensor Data',
+        message: 'Arduino sensors are not providing data. Check connections and power.',
+        action: 'Verify Arduino connection, check wiring, and ensure proper power supply',
+        confidence: 0.95
+      });
+      return issues;
+    }
+
+    // Type guard to ensure all values are numbers
+    const numericData = data as { [K in keyof SensorData]: number };
+
+    if (numericData.soilMoisture < 20) {
       issues.push({
         type: 'critical' as const,
         title: 'Urgent: Soil Critically Dry',
@@ -191,7 +216,7 @@ Focus on the most important issue. Be concise and practical.`;
       });
     }
 
-    if (data.waterLevel < 20) {
+    if (numericData.waterLevel < 20) {
       issues.push({
         type: 'critical' as const,
         title: 'Water Tank Nearly Empty',
@@ -201,22 +226,38 @@ Focus on the most important issue. Be concise and practical.`;
       });
     }
 
-    if (data.temperature > 35) {
+    if (numericData.temperature < 5 || numericData.temperature > 40) {
+      issues.push({
+        type: 'critical' as const,
+        title: 'Extreme Temperature Alert',
+        message: 'Temperature is outside safe range for most plants.',
+        action: 'Adjust environmental controls immediately',
+        confidence: 0.9
+      });
+    } else if (numericData.temperature < 10 || numericData.temperature > 35) {
       issues.push({
         type: 'warning' as const,
-        title: 'High Temperature Alert',
-        message: 'Excessive heat can stress plants and increase water needs.',
-        action: 'Provide shade or increase ventilation',
+        title: 'Temperature Warning',
+        message: 'Temperature is approaching unsafe levels for many plants.',
+        action: 'Monitor closely and prepare environmental adjustments',
         confidence: 0.8
       });
     }
 
-    if (data.light < 200) {
+    if (numericData.light < 100) {
+      issues.push({
+        type: 'critical' as const,
+        title: 'Critical Light Deficiency',
+        message: 'Extremely low light levels will severely impact plant growth.',
+        action: 'Add supplemental lighting immediately',
+        confidence: 0.85
+      });
+    } else if (numericData.light < 300) {
       issues.push({
         type: 'warning' as const,
         title: 'Insufficient Light',
-        message: 'Low light levels may slow plant growth and photosynthesis.',
-        action: 'Add supplemental lighting or relocate plants',
+        message: 'Light levels are below optimal for healthy plant growth.',
+        action: 'Consider adding supplemental lighting or relocating plants',
         confidence: 0.75
       });
     }
@@ -224,9 +265,9 @@ Focus on the most important issue. Be concise and practical.`;
     if (issues.length === 0) {
       issues.push({
         type: 'good' as const,
-        title: 'Optimal Growing Conditions',
-        message: 'All environmental parameters are within healthy ranges for plant growth.',
-        action: 'Continue current care routine and monitor regularly',
+        title: 'Conditions Look Good',
+        message: 'Environmental parameters are within acceptable ranges for most plants.',
+        action: 'Continue monitoring and maintain current care routine',
         confidence: 0.85
       });
     }
@@ -237,7 +278,12 @@ Focus on the most important issue. Be concise and practical.`;
   async getSuitablePlants(data: SensorData): Promise<string[]> {
     const { temperature, humidity, light, soilMoisture } = data;
     
-    // AI-driven plant recommendations
+    // Check for null values
+    if (temperature === null || humidity === null || light === null || soilMoisture === null) {
+      return ['Unable to recommend plants - sensor data required'];
+    }
+    
+    // AI-driven plant recommendations with realistic ranges
     const plants = [];
 
     // Temperature-based recommendations

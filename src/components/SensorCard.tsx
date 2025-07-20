@@ -4,7 +4,7 @@ import { LucideIcon } from "lucide-react";
 
 interface SensorCardProps {
   title: string;
-  value: number | string;
+  value: number | string | null;
   unit: string;
   icon: LucideIcon;
   status: 'good' | 'warning' | 'critical';
@@ -51,7 +51,13 @@ export function SensorCard({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-2xl font-bold text-foreground">
-              {typeof value === 'number' ? value.toFixed(1) : value}
+              {value === null ? (
+                <span className="text-muted-foreground">null</span>
+              ) : typeof value === 'number' ? (
+                value.toFixed(1)
+              ) : (
+                value
+              )}
               <span className="text-sm text-muted-foreground ml-1">{unit}</span>
             </div>
             {(min !== undefined && max !== undefined) && (

@@ -3,6 +3,8 @@ import { SensorCard } from "@/components/SensorCard";
 import { DataSourceSelector } from "@/components/DataSourceSelector";
 import { RecommendationsPanel } from "@/components/RecommendationsPanel";
 import { ManualInputPanel } from "@/components/ManualInputPanel";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Droplets, 
@@ -16,18 +18,26 @@ import {
 } from "lucide-react";
 
 interface SensorData {
-  soilMoisture: number;
-  temperature: number;
-  humidity: number;
-  waterLevel: number;
-  rain: number;
-  light: number;
+  soilMoisture: number | null;
+  temperature: number | null;
+  humidity: number | null;
+  waterLevel: number | null;
+  rain: number | null;
+  light: number | null;
+}
+
+interface RegionSettings {
+  name: string;
+  optimalTemp: { min: number; max: number };
+  optimalHumidity: { min: number; max: number };
+  optimalSoilMoisture: { min: number; max: number };
 }
 
 const Index = () => {
   const { toast } = useToast();
   const [dataSource, setDataSource] = useState<'arduino' | 'simulated' | 'manual'>('simulated');
   const [isConnected, setIsConnected] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<string>('temperate');
   const [sensorData, setSensorData] = useState<SensorData>({
     soilMoisture: 65.4,
     temperature: 24.8,
@@ -36,6 +46,33 @@ const Index = () => {
     rain: 12.3,
     light: 450
   });
+
+  const regions: Record<string, RegionSettings> = {
+    temperate: {
+      name: "Temperate Climate",
+      optimalTemp: { min: 15, max: 25 },
+      optimalHumidity: { min: 40, max: 70 },
+      optimalSoilMoisture: { min: 40, max: 80 }
+    },
+    tropical: {
+      name: "Tropical Climate", 
+      optimalTemp: { min: 22, max: 32 },
+      optimalHumidity: { min: 60, max: 85 },
+      optimalSoilMoisture: { min: 50, max: 85 }
+    },
+    arid: {
+      name: "Arid/Desert Climate",
+      optimalTemp: { min: 20, max: 35 },
+      optimalHumidity: { min: 20, max: 40 },
+      optimalSoilMoisture: { min: 20, max: 50 }
+    },
+    mediterranean: {
+      name: "Mediterranean Climate",
+      optimalTemp: { min: 18, max: 28 },
+      optimalHumidity: { min: 45, max: 65 },
+      optimalSoilMoisture: { min: 35, max: 70 }
+    }
+  };
 
   // Simulate sensor data
   const generateSimulatedData = (): SensorData => ({
@@ -47,31 +84,35 @@ const Index = () => {
     light: Math.random() * 1000
   });
 
-  // Get sensor status based on value ranges
-  const getSensorStatus = (sensor: keyof SensorData, value: number): 'good' | 'warning' | 'critical' => {
+  // Get sensor status based on value ranges and selected region
+  const getSensorStatus = (sensor: keyof SensorData, value: number | null): 'good' | 'warning' | 'critical' => {
+    if (value === null) return 'critical';
+    
+    const region = regions[selectedRegion];
+    
     switch (sensor) {
       case 'soilMoisture':
-        if (value < 30) return 'critical';
-        if (value < 50) return 'warning';
+        if (value < region.optimalSoilMoisture.min - 20) return 'critical';
+        if (value < region.optimalSoilMoisture.min || value > region.optimalSoilMoisture.max + 10) return 'warning';
         return 'good';
       case 'temperature':
-        if (value < 10 || value > 35) return 'warning';
-        if (value < 5 || value > 40) return 'critical';
+        if (value < region.optimalTemp.min - 10 || value > region.optimalTemp.max + 10) return 'critical';
+        if (value < region.optimalTemp.min || value > region.optimalTemp.max) return 'warning';
         return 'good';
       case 'humidity':
-        if (value < 30 || value > 80) return 'warning';
-        if (value < 20 || value > 90) return 'critical';
+        if (value < region.optimalHumidity.min - 20 || value > region.optimalHumidity.max + 20) return 'critical';
+        if (value < region.optimalHumidity.min || value > region.optimalHumidity.max) return 'warning';
         return 'good';
       case 'waterLevel':
         if (value < 20) return 'critical';
         if (value < 40) return 'warning';
         return 'good';
       case 'rain':
-        if (value > 70) return 'warning';
+        if (value > 80) return 'warning';
         return 'good';
       case 'light':
-        if (value < 200) return 'warning';
         if (value < 100) return 'critical';
+        if (value < 300) return 'warning';
         return 'good';
       default:
         return 'good';
@@ -86,21 +127,35 @@ const Index = () => {
       if (dataSource === 'simulated') {
         setSensorData(generateSimulatedData());
       } else if (dataSource === 'arduino') {
+        // Arduino mode shows null until real data comes in
         // In a real implementation, this would read from serial port
-        // For now, we'll simulate it with some variation
-        setSensorData(prev => ({
-          soilMoisture: Math.max(0, Math.min(100, prev.soilMoisture + (Math.random() - 0.5) * 5)),
-          temperature: Math.max(-10, Math.min(50, prev.temperature + (Math.random() - 0.5) * 2)),
-          humidity: Math.max(0, Math.min(100, prev.humidity + (Math.random() - 0.5) * 3)),
-          waterLevel: Math.max(0, Math.min(100, prev.waterLevel + (Math.random() - 0.5) * 2)),
-          rain: Math.max(0, Math.min(100, prev.rain + (Math.random() - 0.5) * 10)),
-          light: Math.max(0, Math.min(1000, prev.light + (Math.random() - 0.5) * 50))
-        }));
+        setSensorData({
+          soilMoisture: null,
+          temperature: null,
+          humidity: null,
+          waterLevel: null,
+          rain: null,
+          light: null
+        });
       }
     }, 5000);
 
     return () => clearInterval(interval);
   }, [isConnected, dataSource]);
+
+  // Initialize Arduino mode data to null when switching
+  useEffect(() => {
+    if (dataSource === 'arduino') {
+      setSensorData({
+        soilMoisture: null,
+        temperature: null,
+        humidity: null,
+        waterLevel: null,
+        rain: null,
+        light: null
+      });
+    }
+  }, [dataSource]);
 
   const handleDataSourceChange = (source: 'arduino' | 'simulated' | 'manual') => {
     setDataSource(source);
@@ -167,6 +222,34 @@ const Index = () => {
           onToggleConnection={handleToggleConnection}
           onRunSimulation={handleRunSimulation}
         />
+
+        {/* Region Selection */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sun className="h-5 w-5 text-primary" />
+              Climate Region
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(regions).map(([key, region]) => (
+                <Button
+                  key={key}
+                  variant={selectedRegion === key ? 'default' : 'outline'}
+                  onClick={() => setSelectedRegion(key)}
+                  className={selectedRegion === key ? 'bg-gradient-primary' : ''}
+                >
+                  {region.name}
+                </Button>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Selected: {regions[selectedRegion].name} | 
+              Optimal temp: {regions[selectedRegion].optimalTemp.min}°C - {regions[selectedRegion].optimalTemp.max}°C
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Manual Input Panel */}
         <ManualInputPanel
