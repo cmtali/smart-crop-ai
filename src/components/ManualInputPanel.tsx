@@ -26,7 +26,7 @@ export function ManualInputPanel({ sensorData, onDataUpdate, isVisible }: Manual
   const handleInputChange = (field: keyof SensorData, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: parseFloat(value) || 0
+      [field]: value === '' ? 0 : parseFloat(value) || 0
     }));
   };
 
